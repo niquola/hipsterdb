@@ -11,16 +11,25 @@
                  [cljs-http "0.1.41"]
                  [com.cognitect/transit-clj "0.8.285"]
                  [com.cognitect/transit-cljs "0.8.237"]
+                 [com.zaxxer/HikariCP "2.4.3"]
+                 [io.forward/yaml "1.0.3"]
                  [garden "1.3.2"]
                  [hiccup "1.0.5"]
+                 [honeysql "0.6.2"]
                  [http-kit "2.1.19"]
                  [org.clojure/core.async "0.2.382"]
+                 [org.clojure/java.jdbc "0.5.0"]
                  [org.clojure/tools.logging "0.3.1"]
+                 [org.clojure/tools.logging "0.3.1"]
+                 [org.postgresql/postgresql "9.4.1208.jre7"]
                  [reagent "0.5.1" :exclusions [org.clojure/tools.reader]]
                  [reagent-utils "0.1.8"]
                  [ring "1.5.0"]
+                 [environ "1.0.1"]
                  [ring/ring-defaults "0.2.1"]
-                 [route-map "0.0.3"]]
+                 [route-map "0.0.3"]
+
+                 [clj-antlr "0.2.2"]]
 
   :plugins [[lein-environ "1.0.2"]
             [lein-cljsbuild "1.1.1"]
@@ -40,7 +49,7 @@
    [:cljsbuild :builds :app :compiler :output-dir]
    [:cljsbuild :builds :app :compiler :output-to]]
 
-  :source-paths ["src/clj" "src/cljc"]
+  :source-paths ["src/clj" "src/cljc" "clj-pg/src" "clj-pg/test"]
   :resource-paths ["resources" "target/cljsbuild"]
 
   :cljsbuild {:builds {:min

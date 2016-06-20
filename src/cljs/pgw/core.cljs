@@ -10,21 +10,33 @@
   (css/css
    [:body {:font-size "18px"}]))
 
+(def state (atom {}))
+
 (defn $index []
   [:div#repl
    [:style style]
-   [:h3 "Page"]
-   [:a {:href "#/page"} "Page-1"]])
+   [:a {:href "#/graphql"} "GraphQL"]
+   [:br]
+   [:a {:href "#/swagger"} "REST (Swagger)"]
+   [:br]
+   [:a {:href "#/honeysql"} "HoneySQL"]])
 
-(defn $page []
+(defn bind [k]
+  (fn [ev]
+    (swap! state assoc k (.. ev -target -value))))
+
+(defn $graphql []
   [:div#repl
    [:style style]
-   [:h3 "Page"]
-   [:a {:href "#/"} "Page"]])
+   [:a {:href "#/"} "Home"]
+   [:br]
+   [:textarea {:on-change (bind :input) :value (:input @state)}]
+   [:pre (pr-str @state)]
+   ])
 
 (def routes
   {:GET  #'$index
-   "page" {:GET #'$page}})
+   "graphql" {:GET #'$graphql}})
 
 (defonce current-page (atom (:GET routes)))
 

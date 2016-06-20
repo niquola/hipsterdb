@@ -1,0 +1,56 @@
+{
+    "__type": {
+        "name": "Droid",
+        "fields": [
+            {
+                "name": "id",
+                "type": {
+                    "name": null,
+                    "kind": "NON_NULL",
+                    "ofType": {
+                        "name": "String",
+                        "kind": "SCALAR"
+                    }
+                }
+            },
+            {
+                "name": "name",
+                "type": {
+                    "name": "String",
+                    "kind": "SCALAR",
+                    "ofType": null
+                }
+            },
+            {
+                "name": "friends",
+                "type": {
+                    "name": null,
+                    "kind": "LIST",
+                    "ofType": {
+                        "name": "Character",
+                        "kind": "INTERFACE"
+                    }
+                }
+            },
+            {
+                "name": "appearsIn",
+                "type": {
+                    "name": null,
+                    "kind": "LIST",
+                    "ofType": {
+                        "name": "Episode",
+                        "kind": "ENUM"
+                    }
+                }
+            },
+            {
+                "name": "primaryFunction",
+                "type": {
+                    "name": "String",
+                    "kind": "SCALAR",
+                    "ofType": null
+                }
+            }
+        ]
+    }
+}

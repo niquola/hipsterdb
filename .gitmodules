@@ -1,0 +1,3 @@
+[submodule "clj-pg"]
+	path = clj-pg
+	url = https://github.com/niquola/clj-pg
