@@ -44,6 +44,9 @@
 (defn databases [params]
   (db/with-db "postgres" (query {:from [:pg_database]} params)))
 
+(defn tables [params]
+  (query {:from [:pg_tables]} params))
+
 (defn dbs
   "List databases"
   [{params :params :as req}]

@@ -1,5 +1,6 @@
 (ns plswagger.core
-  (:require [plswagger.definitions :as definitions]))
+  (:require [plswagger.definitions :as definitions]
+            [pg.core :as pg]))
 
 (defn meta 
   "Doc string"

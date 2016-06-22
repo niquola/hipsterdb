@@ -25,7 +25,7 @@
                    (mapv :attname))}))
 
 (defn tables-swagger []
-  {:summary "represent table as json schema"
+  {:summary "List tables"
    :parameters [{:name "db"
                  :in "path"
                  :type "string"
@@ -36,14 +36,26 @@
 
 (defn tables
   {:swagger tables-swagger}
+  [{params :params :as req}]
+  {:body (pg/tables params)})
+
+(defn table-def-swagger []
+  {:summary "represent table as json schema"
+   :parameters [{:name "db"
+                 :in "path"
+                 :type "string"
+                 :enum (map :datname (pg/databases {}))}]})
+
+(defn table-def
+  {:swagger table-def-swagger}
   [{{rel :table-name :as params} :params :as req}]
   {:body  (table-to-schema rel)})
 
 (def routes
-  {"tables" {[:table-name] {:GET #'tables}}})
+  {"tables" {:GET #'tables
+             [:table-name] {:GET #'table-def}}})
 
 (comment
   (db/with-db "nicola"
-    (table-to-schema "test"))
-  )
+    (table-to-schema "test")))
 
