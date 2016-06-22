@@ -35,7 +35,6 @@
 
 (comment
   (db/with-db "nicola"
-    (table-to-schema "test"))
-  )
+    (table-to-schema "test")))
 
 

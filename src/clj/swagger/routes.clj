@@ -10,17 +10,26 @@
     (str "{" (name (first k)) "}")
     k))
 
+(defn definition [m v]
+  (if-let [sw (and m (:swagger m))]
+    (if (fn? sw) (sw) sw)
+    {:x-swagger-handler (pr-str v)}))
+
 (defn reduce-layer [acc r]
   (reduce (fn [{cp :current-path :as acc} [k v]]
-            (cond
-              (and (map? v) (or (string? k) (vector? k)))
-              (reduce-layer (update-in acc [:current-path] str "/" (to-path k)) v)
+            (let [m (when (var? v) (meta v))
+                  v (if (var? v) (deref v) v)]
+              (cond
+                (and (map? v)
+                     (or (string? k)
+                         (vector? k)))
+                (-> (reduce-layer (update-in acc [:current-path] str "/" (to-path k)) v)
+                    (assoc :current-path cp))
 
-              (method? k)
-              (assoc-in acc [:paths cp (str/lower-case (name k))] (if-let [m (when (var? v) (meta v))]
-                                                                    (or (:swagger m) {})
-                                                                    {:x-swagger-handler (pr-str v)}
-                                                                    ))))
+                (method? k)
+                (-> acc 
+                    (assoc-in [:paths cp (str/lower-case (name k))] (definition m v))
+                    (assoc :current-path cp)))))
    acc r))
 
 (defn build-paths [r]
@@ -38,13 +47,12 @@
 (defn build-swagger [r]
   {:paths (:paths (build-paths r)) 
    :definitions {}
-   :externalDocs {:url "??"
-                  :description "??"}
+   :externalDocs {:description "PostgreSQL is your API"}
    :schemes ["http" "https"]
    :basePath "/"
-   :host "aidbox.io"
-   :info {:title "saveme"
-          :description "saveme"
+   :host "localhost:8080"
+   :info {:title "pgw"
+          :description "pgw"
           :version "0.1"}
    :swagger "2.0"})
 

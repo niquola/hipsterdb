@@ -41,10 +41,13 @@
   [{{db :db rel :relation-name :as params} :params :as req}]
   {:body (query {:from [(keyword rel)]} params)})
 
+(defn databases [params]
+  (db/with-db "postgres" (query {:from [:pg_database]} params)))
+
 (defn dbs
   "List databases"
   [{params :params :as req}]
-  {:body (db/with-db "postgres" (query {:from [:pg_database]} params))})
+  {:body (databases params)})
 
 (def routes
   {[:relation-name] {:GET #'rel-desc}})

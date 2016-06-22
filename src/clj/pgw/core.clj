@@ -5,6 +5,7 @@
    [pgw.db :as db]
    [garden.units :as u]
    [hiccup.core :as html]
+   [cors :as cors]
    [org.httpkit.server :as http]
    [ring.middleware.defaults :as rmd]
    [ring.middleware.resource :as rmr]
@@ -15,6 +16,8 @@
    [pg.core :as pg]
    [ring.util.codec :as codec]
    [pgw.formats :as fmt]
+   [postgrest.core :as postgrest]
+   [plswagger.core :as plswagger]
    [route-map.core :as route]
    [clojure.string :as str])
   (:gen-class))
@@ -38,7 +41,7 @@
   (fn [req]
     (let [fmt (or (get-in req [:params  :_format])
                   (get-in req [:headers "Content-Type"])
-                  "json")
+                  "application/json")
           res (h req)]
       (if-not (string? (:body res))
         (-> res
@@ -65,15 +68,18 @@
    :headers {"Content-Type" "text/html"}
    :status 200})
 
+(declare routes)
+
+(defn meta-data [req]
+  {:body (swagr/build-swagger routes)})
 
 (def routes
-  (let [r {:GET #'$index
-           "db" {:GET  #'pg/dbs
-                 [:db] {:mw [#'wrap-db]
-                        "pg" pg/routes
-                        "graphql" gq/routes
-                        "swagger" swag/routes}}}]
-    (assoc r "swagger" {:GET (swagr/mk-swagger r)})))
+  {:mw [wrap-db]
+   :GET #'$index
+   "swagger" {:GET  #'meta-data}
+   "postgrest" #'postgrest/routes 
+   "plswagger" #'plswagger/routes 
+   "graphql"   #'gq/routes})
 
 
 (defn collect-mw [match]
@@ -117,6 +123,7 @@
       (resolve-route routes)))
 
 (def app (-> (dispatch routes)
+             (cors/wrap-cors)
              (wrap-exception)
              (wrap-format)
              (rmd/wrap-defaults rmd/site-defaults)
@@ -134,5 +141,4 @@
 
 (comment
   (@stop)
-  (start)
-  )
+  (start))

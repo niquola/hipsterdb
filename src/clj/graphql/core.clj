@@ -17,4 +17,5 @@
    :body (to-graphql (table-to-type rel))})
 
 (def routes
-  {[:relation-name] {:GET #'table}})
+  {"v1" {"introsp" {:GET #'table}
+         "query" {:GET #'table}}})
