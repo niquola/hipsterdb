@@ -1,8 +1,11 @@
 (ns pgw.core
+  (:require-macros [cljs.core.async.macros :as m :refer [go alt!]])
   (:require [reagent.core :as reagent :refer [atom]]
             [garden.core :as css]
             [route-map.core :as rm]
             [goog.events :as events]
+            [pgw.io :as io]
+            [cljs.core.async :refer [<! >!]]
             [goog.history.EventType :as EventType])
   (:import goog.History))
 
@@ -25,14 +28,19 @@
   (fn [ev]
     (swap! state assoc k (.. ev -target -value))))
 
+(defn do-request []
+  (go
+    (let [res (<! (io/GET {:uri (:rest-uri @state)}))]
+      (swap! state assoc :result (:body res)))))
+
 (defn $graphql []
   [:div#repl
    [:style style]
    [:a {:href "#/"} "Home"]
    [:br]
-   [:textarea {:on-change (bind :input) :value (:input @state)}]
-   [:pre (pr-str @state)]
-   ])
+   [:input {:on-change (bind :rest-uri) :value (:rest-uri @state)}]
+   [:button {:on-click do-request} "Send"]
+   [:pre (:result @state)]])
 
 (def routes
   {:GET  #'$index

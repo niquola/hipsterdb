@@ -3,7 +3,7 @@
             [clojure.test :refer :all]))
 
 (def tests-data
-  [["{ user(id: 2) { id, name} }",{}]
+  [#_["{ user(id: 2) { id, name} }",{}]
    ["type User {
     id: Integer!
     name: String

@@ -1,7 +1,6 @@
 (ns swagger.core
   (:require [pg.core :as pg]))
 
-
 (def type-map
   {"bool" "Boolean"
    "int2" "Integer"

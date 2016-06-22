@@ -11,6 +11,7 @@
    [graphql.core :as gq]
    [clojure.tools.logging :as log]
    [swagger.core :as swag]
+   [swagger.routes :as swagr]
    [pg.core :as pg]
    [ring.util.codec :as codec]
    [pgw.formats :as fmt]
@@ -66,12 +67,13 @@
 
 
 (def routes
-  {:GET #'$index
-   "db" {:GET  #'pg/dbs
-         [:db] {:mw [#'wrap-db]
-                "pg" pg/routes
-                "graphql" gq/routes
-                "swagger" swag/routes}}})
+  (let [r {:GET #'$index
+           "db" {:GET  #'pg/dbs
+                 [:db] {:mw [#'wrap-db]
+                        "pg" pg/routes
+                        "graphql" gq/routes
+                        "swagger" swag/routes}}}]
+    (assoc r "swagger" {:GET (swagr/mk-swagger r)})))
 
 
 (defn collect-mw [match]

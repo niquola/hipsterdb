@@ -1,4 +1,4 @@
-(ns pg.core
+(ns falcor.core
   (:require [pgw.db :as db]
             [clojure.string :as str]))
 
@@ -30,21 +30,11 @@
       (->limit params)
       (db/query)))
 
-(def rel-desc-meta
-  {:tags ["db"]
-   :summary  "This is summary"
-   :produces ["application/json" "application/xml"]})
-
-(defn rel-desc
-  "Table definition"
-  {:swagger rel-desc-meta}
-  [{{db :db rel :relation-name :as params} :params :as req}]
+(defn rel-desc [{{db :db rel :relation-name :as params} :params :as req}]
   {:body (query {:from [(keyword rel)]} params)})
 
-(defn dbs
-  "List databases"
-  [{params :params :as req}]
-  {:body (db/with-db "postgres" (query {:from [:pg_database]} params))})
+(defn dbs [{params :params :as req}]
+  {:body (query {:from [:pg_database]} params)})
 
 (def routes
   {[:relation-name] {:GET #'rel-desc}})

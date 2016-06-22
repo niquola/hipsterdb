@@ -16,14 +16,14 @@
 (defn fieldDefinitions [& x]
   (reduce
    (fn [acc fd]
-     (assoc acc (keyword (:fieldDefName fd)) (:fieldDefType fd)))
+     (assoc acc (keyword (:fieldDefName fd)) (str (:fieldDefType fd) (when (:fieldRequired fd) "!"))))
    {} x))
 
 (defn typeDefName [nm & _] nm)
 
 (defn typeDefinition [_ tn _ fields _]
   {:__type tn
-   :fileds fields})
+   :fields fields})
 
 (def transformers
   {:definition definition
