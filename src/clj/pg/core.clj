@@ -1,5 +1,5 @@
 (ns pg.core
-  (:require [pgw.db :as db]
+  (:require [db :as db]
             [clojure.string :as str]))
 
 (defn columns [tbl-name]
@@ -45,7 +45,16 @@
   (db/with-db "postgres" (query {:from [:pg_database]} params)))
 
 (defn tables [params]
-  (query {:from [:pg_tables]} params))
+  (query {:from [:information_schema.tables]
+          :where [:= :table_schema (:schema params)]} params))
+
+(defn columns [params]
+  (query {:from [:information_schema.columns]
+          :where [:= :table_Name (params :table)]} params))
+
+(defn schemas [params]
+  (query {:from [:information_schema.schemata]
+          :where [:not [:in :schema_name ["pg_catalog"]]]} params))
 
 (defn dbs
   "List databases"

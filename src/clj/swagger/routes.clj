@@ -10,26 +10,42 @@
     (str "{" (name (first k)) "}")
     k))
 
-(defn definition [m v]
+(defn definition [m v params]
   (if-let [sw (and m (:swagger m))]
-    (if (fn? sw) (sw) sw)
+    (if (fn? sw) (sw params) sw)
     {:x-swagger-handler (pr-str v)}))
 
-(defn reduce-layer [acc r]
-  (reduce (fn [{cp :current-path :as acc} [k v]]
-            (let [m (when (var? v) (meta v))
-                  v (if (var? v) (deref v) v)]
-              (cond
-                (and (map? v)
-                     (or (string? k)
-                         (vector? k)))
-                (-> (reduce-layer (update-in acc [:current-path] str "/" (to-path k)) v)
-                    (assoc :current-path cp))
+(defn ordinary-path? [k] (string? k))
+(defn parameter? [k] (vector? k))
 
-                (method? k)
-                (-> acc 
-                    (assoc-in [:paths cp (str/lower-case (name k))] (definition m v))
-                    (assoc :current-path cp)))))
+(defn reduce-layer [acc r]
+  (reduce
+   (fn [{cp :current-path :as acc} [k v]]
+     (let [m (when (var? v) (meta v))
+           v (if (var? v) (deref v) v)]
+       (-> (cond
+             (ordinary-path? k)
+             (reduce-layer (update-in acc [:current-path] str "/" k) v)
+
+             (parameter? k)
+             (let [gen (get r (first k))]
+               (let [ps (gen (:params acc))]
+                 (println gen)
+                 (reduce (fn [acc pk]
+                           (reduce-layer
+                            (merge acc {:current-path (str cp "/" pk)
+                                        :params (assoc (:params acc) (first k) pk)})
+                             v))
+                         acc ps))
+               #_(reduce-layer (update-in acc [:current-path] str "/" (to-path k)) v))
+
+
+             (method? k)
+             (assoc-in acc [:paths cp (str/lower-case (name k))] (definition m v (:params acc)))
+
+             :else acc)
+
+           (assoc :current-path cp))))
    acc r))
 
 (defn build-paths [r]
@@ -42,20 +58,7 @@
 
 (build-paths {:GET #'hndl
               "path" {:GET #'hndl
+                      :param   (fn [_] (println "Here") (mapv str (range 10)))
                       [:param] {:GET #'hndl}}})
 
-(defn build-swagger [r]
-  {:paths (:paths (build-paths r)) 
-   :definitions {}
-   :externalDocs {:description "PostgreSQL is your API"}
-   :schemes ["http" "https"]
-   :basePath "/"
-   :host "localhost:8080"
-   :info {:title "pgw"
-          :description "pgw"
-          :version "0.1"}
-   :swagger "2.0"})
 
-(defn mk-swagger [r]
-  (fn [req]
-    {:body (build-swagger r)}))

@@ -1,5 +1,5 @@
 (ns falcor.core
-  (:require [pgw.db :as db]
+  (:require [db :as db]
             [clojure.string :as str]))
 
 (defn columns [tbl-name]

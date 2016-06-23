@@ -1,4 +1,4 @@
-(ns pgw.db
+(ns db
   (:require
     [clojure.java.jdbc :as jdbc]
     [clojure.string :as cs]

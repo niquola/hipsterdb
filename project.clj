@@ -35,14 +35,14 @@
             [lein-cljsbuild "1.1.1"]
             [lein-ancient "0.6.8"]]
 
-  :ring {:handler pgw.core/app
+  :ring {:handler web.core/app
          :uberwar-name "pgw.war"}
 
   :min-lein-version "2.5.0"
 
   :uberjar-name "pgw.jar"
 
-  :main pgw.core
+  :main web.core
 
   :clean-targets ^{:protect false}
   [:target-path
@@ -80,7 +80,7 @@
              :nrepl-port 7002
              :nrepl-middleware ["cemerick.piggieback/wrap-cljs-repl"]
              :css-dirs ["resources/public/css"]
-             :ring-handler pgw.core/app}
+             :ring-handler web.core/app}
 
   :profiles {:dev {:dependencies [[ring/ring-mock "0.3.0"]
                                   [ring/ring-devel "1.5.0"]

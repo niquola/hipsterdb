@@ -1,9 +1,10 @@
-(ns pgw.formats
+(ns formats
   (:require
    [cheshire.generate :as cg]
    [yaml.core :as ym]
    [cheshire.core :as cc]
-   [cognitect.transit :as transit])
+   [cognitect.transit :as transit]
+   [clojure.string :as str])
   (:import (java.io ByteArrayInputStream ByteArrayOutputStream)
            org.postgresql.util.PGobject))
 
@@ -44,12 +45,32 @@
          (cc/generate-string clj options))})
 
 (def yaml
-  {:from (fn from-yaml [s]
-           (ym/parse-string s))
-   :to (fn to-yalm [o]
-         (ym/generate-string o))})
+  {:from (fn [s] (ym/parse-string s))
+   :to (fn [o] (ym/generate-string o))})
 
+(defn measure-columns [rs]
+  (reduce (fn [acc r]
+            (reduce (fn [acc [k v]]
+                      (assoc acc k (max (or (get acc k) 0) (.length (name k)) (.length (str v))))
+                      ) acc r))
+          {} rs))
 
+(defn pad [v l]
+  (format (str "%-" (+ l 1) "s") v))
+
+((:to asci) [{:a "aaaa" :b "ups"} {:a "............." :b "cc"}])
+
+(def asci
+  {:from (fn [s] (throw (Exception. "Not impl.")))
+   :to (fn [o]
+         (let [ks (measure-columns o)
+               k-nms (keys ks)]
+           (str 
+            (str/join "|" (map #(pad (name %) (get ks %)) k-nms))
+            "\n"
+            (str/join "\n"
+                      (for [r o]
+                        (str/join "|" (for [k k-nms] (pad (get r k) (get ks k)))))))))})
 
 
 (def formats
@@ -67,7 +88,9 @@
    "text/yaml" yaml
    "text/x-yaml" yaml
    "application/yaml" yaml
-   "application/x-yaml" yaml})
+   "application/x-yaml" yaml
+
+   "text/asci" asci})
 
 (defn to [mime o]
   (if-let [fmt (get formats mime)]
@@ -86,4 +109,3 @@
   (from-transit
    (to-transit {:a 1} :json))
   )
-

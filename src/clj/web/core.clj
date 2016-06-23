@@ -1,11 +1,11 @@
-(ns pgw.core
+(ns web.core
   (:require
    [clojure.tools.logging :as log]
    [garden.core :as css]
-   [pgw.db :as db]
+   [db :as db]
+   [cors :as cors]
    [garden.units :as u]
    [hiccup.core :as html]
-   [cors :as cors]
    [org.httpkit.server :as http]
    [ring.middleware.defaults :as rmd]
    [ring.middleware.resource :as rmr]
@@ -13,9 +13,8 @@
    [clojure.tools.logging :as log]
    [swagger.core :as swag]
    [swagger.routes :as swagr]
-   [pg.core :as pg]
    [ring.util.codec :as codec]
-   [pgw.formats :as fmt]
+   [formats :as fmt]
    [postgrest.core :as postgrest]
    [plswagger.core :as plswagger]
    [route-map.core :as route]
@@ -70,16 +69,47 @@
 
 (declare routes)
 
-(defn meta-data [req]
-  {:body (swagr/build-swagger routes)})
+(defn root-swagger [req]
+  {:body 
+   {:paths {"/" {:get {:summary "ui"}}
+            "/swagger-ui/index.html" {:get {:summary "Swagger UI"}}
+            "/db/{db}/swagger" {:get {:summary "DB API Swagger SPEC"}}}
+    :externalDocs {:description "PostgreSQL is your API"}
+    :schemes ["http" "https"]
+    :basePath "/"
+    :host "localhost:8080"
+    :info {:title "pgw"
+           :description "pgw"
+           :version "0.1"}
+    :swagger "2.0"}})
+
+(declare db-api-routes)
+
+(defn db-api-spec [{{db :db :as params} :params :as req}]
+  (let [base-path (str "/" db)]
+    {:body
+     {:paths (:paths (swagr/build-paths db-api-routes)) 
+      :externalDocs {:description "PostgreSQL is your API"}
+      :schemes ["http" "https"]
+      :basePath base-path
+      :host "localhost:8080"
+      :info {:title "pgw"
+             :description "pgw"
+             :version "0.1"}
+      :swagger "2.0"}}))
+
+(def db-api-routes
+  {"swagger" {:GET #'db-api-spec}
+   ;;"postgrest" #'postgrest/routes
+   "plswagger" #'plswagger/routes
+   ;;"graphql"   #'gq/routes
+   })
 
 (def routes
   {:mw [wrap-db]
    :GET #'$index
-   "swagger" {:GET  #'meta-data}
-   "postgrest" #'postgrest/routes 
-   "plswagger" #'plswagger/routes 
-   "graphql"   #'gq/routes})
+   "swagger" {:GET  #'root-swagger}
+   [:db] #'db-api-routes})
 
 
 (defn collect-mw [match]
@@ -137,7 +167,8 @@
           (http/run-server #'app {:port 8080})))
 
 (defn -main [& args]
-  (start))
+  (start)
+  )
 
 (comment
   (@stop)
