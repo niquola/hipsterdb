@@ -4,6 +4,7 @@
    [yaml.core :as ym]
    [cheshire.core :as cc]
    [cognitect.transit :as transit]
+   [hiccup.core :as html]
    [clojure.string :as str])
   (:import (java.io ByteArrayInputStream ByteArrayOutputStream)
            org.postgresql.util.PGobject))
@@ -27,6 +28,8 @@
   {:to (fn  [clj & [frmt]]
          (.toString (to-transit-stream clj [frmt])))
 
+   :tr (constantly "application/transit+json")
+
    :from (fn [str & [frmt]]
            (-> (cond
                  (string? str) (ByteArrayInputStream. (.getBytes str))
@@ -41,11 +44,13 @@
            (if (string? str)
              (cc/parse-string str keyword)
              str))
+   :tr (constantly "application/json")
    :to (fn [clj &  [options]]
          (cc/generate-string clj options))})
 
 (def yaml
   {:from (fn [s] (ym/parse-string s))
+   :tr (constantly "application/yaml")
    :to (fn [o] (ym/generate-string o))})
 
 (defn measure-columns [rs]
@@ -58,10 +63,9 @@
 (defn pad [v l]
   (format (str "%-" (+ l 1) "s") v))
 
-((:to asci) [{:a "aaaa" :b "ups"} {:a "............." :b "cc"}])
-
 (def asci
   {:from (fn [s] (throw (Exception. "Not impl.")))
+   :tr (constantly "text/pain")
    :to (fn [o]
          (let [ks (measure-columns o)
                k-nms (keys ks)]
@@ -72,6 +76,13 @@
                       (for [r o]
                         (str/join "|" (for [k k-nms] (pad (get r k) (get ks k)))))))))})
 
+(def hiccup
+  {:from (fn [s] (throw (Exception. "Not impl.")))
+   :tr (constantly "text/html")
+   :to (fn [o]
+         (if (not (string? o))
+           (html/html o)
+           o))})
 
 (def formats
   {"json" json
@@ -90,12 +101,19 @@
    "application/yaml" yaml
    "application/x-yaml" yaml
 
+   "hiccup" hiccup
+
    "text/asci" asci})
 
 (defn to [mime o]
   (if-let [fmt (get formats mime)]
     ((:to fmt) o)
     (str "UPS unkonw format " mime " "(pr-str o))))
+
+(defn transform [mime]
+  (if-let [fmt (get formats mime)]
+    ((:tr fmt) mime)
+    mime))
 
 (defn from [mime s]
   (if-let [fmt (get formats mime)]
@@ -107,5 +125,4 @@
    (to-transit-stream {:a 1} :json))
 
   (from-transit
-   (to-transit {:a 1} :json))
-  )
+   (to-transit {:a 1} :json)))

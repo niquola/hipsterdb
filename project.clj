@@ -9,6 +9,7 @@
 
                  [cheshire "5.6.1"]
                  [cljs-http "0.1.41"]
+                 [clj-jwt "0.1.1"]
                  [com.cognitect/transit-clj "0.8.285"]
                  [com.cognitect/transit-cljs "0.8.237"]
                  [com.zaxxer/HikariCP "2.4.3"]

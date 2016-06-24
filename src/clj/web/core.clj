@@ -18,6 +18,7 @@
    [postgrest.core :as postgrest]
    [plswagger.core :as plswagger]
    [route-map.core :as route]
+   [oauth.core :as oauth]
    [clojure.string :as str])
   (:gen-class))
 
@@ -38,14 +39,17 @@
 
 (defn wrap-format [h]
   (fn [req]
-    (let [fmt (or (get-in req [:params  :_format])
+    (let [
+          res (h req)
+          fmt (or (get-in res [:headers "Content-Type"])
+                  (get-in req [:params  :_format])
                   (get-in req [:headers "Content-Type"])
                   "application/json")
-          res (h req)]
+          ]
       (if-not (string? (:body res))
         (-> res
             (update-in [:body] (fn [o] (fmt/to fmt o)))
-            (update-in [:headers "Content-Type"] (fn [f] (or f fmt))))
+            (assoc-in [:headers "Content-Type"] (fmt/transform fmt)))
         res))))
 
 (defn wrap-exception [h]
@@ -108,6 +112,7 @@
 (def routes
   {:mw [wrap-db]
    :GET #'$index
+   "auth"  #'oauth/routes
    "swagger" {:GET  #'root-swagger}
    [:db] #'db-api-routes})
 
@@ -167,8 +172,7 @@
           (http/run-server #'app {:port 8080})))
 
 (defn -main [& args]
-  (start)
-  )
+  (start))
 
 (comment
   (@stop)
