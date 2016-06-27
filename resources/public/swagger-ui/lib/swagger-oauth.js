@@ -278,6 +278,7 @@ window.processOAuthCode = function processOAuthCode(data) {
 };
 
 window.onOAuthComplete = function onOAuthComplete(token,OAuthSchemeKey) {
+  console.log("OAUTH", arguments);
   if(token) {
     if(token.error) {
       var checkbox = $('input[type=checkbox],.secured')

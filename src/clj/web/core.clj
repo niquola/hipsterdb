@@ -63,7 +63,10 @@
 (defn wrap-db [h]
   (fn [{{db :db} :params :as req}]
     (if db
-      (db/with-db db (h req))
+      (db/with-db db
+        (when-let [jwt (:jwt req)]
+          (db/execute (str "SET ROLE " (:sub jwt))))
+        (h req))
       (h req))))
 
 (defn $index [req]
@@ -100,7 +103,11 @@
       :info {:title "pgw"
              :description "pgw"
              :version "0.1"}
-      :swagger "2.0"}}))
+      :swagger "2.0"
+      :securityDefinitions
+      {:implicit {:type "oauth2"
+                  :authorizationUrl "/auth"
+                  :flow "implicit"}}}}))
 
 (def db-api-routes
   {"swagger" {:GET #'db-api-spec}
@@ -110,7 +117,7 @@
    })
 
 (def routes
-  {:mw [wrap-db]
+  {:mw [oauth/wrap-token wrap-db]
    :GET #'$index
    "auth"  #'oauth/routes
    "swagger" {:GET  #'root-swagger}

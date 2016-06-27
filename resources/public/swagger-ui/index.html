@@ -49,6 +49,7 @@
       if(window.SwaggerTranslator) {
         window.SwaggerTranslator.translate();
       }
+
       window.swaggerUi = new SwaggerUi({
         url: url,
         dom_id: "swagger-ui-container",
@@ -56,10 +57,10 @@
         onComplete: function(swaggerApi, swaggerUi){
           if(typeof initOAuth == "function") {
             initOAuth({
-              clientId: "your-client-id",
-              clientSecret: "your-client-secret-if-required",
-              realm: "your-realms",
-              appName: "your-app-name",
+              clientId: "swagger-ui",
+              clientSecret: "secret",
+              realm: "hash",
+              appName: "swagger-ui",
               scopeSeparator: ",",
               additionalQueryStringParams: {}
             });
@@ -73,9 +74,9 @@
           log("Unable to Load SwaggerUI");
         },
         docExpansion: "none",
-        jsonEditor: false,
+        jsonEditor: true,
         defaultModelRendering: 'schema',
-        showRequestHeaders: false
+        showRequestHeaders: true
       });
 
       window.swaggerUi.load();
@@ -90,7 +91,8 @@
 </head>
 
 <body class="swagger-section">
-<div id="message-bar" class="swagger-ui-wrap" data-sw-translate>&nbsp;</div>
-<div id="swagger-ui-container" class="swagger-ui-wrap"></div>
+  <div id='auth_container'></div>
+  <div id="message-bar" class="swagger-ui-wrap" data-sw-translate>&nbsp;</div>
+  <div id="swagger-ui-container" class="swagger-ui-wrap"></div>
 </body>
 </html>

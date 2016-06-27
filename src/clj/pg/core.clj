@@ -54,7 +54,7 @@
 
 (defn schemas [params]
   (query {:from [:information_schema.schemata]
-          :where [:not [:in :schema_name ["pg_catalog"]]]} params))
+          :where [:= :schema_name "public"] #_[:not [:in :schema_name ["pg_catalog"]]]} params))
 
 (defn dbs
   "List databases"
